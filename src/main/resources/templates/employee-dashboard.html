@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+
+        .container {
+            max-width: 85vw;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            display: flex;
+            flex-flow: column;
+        }
+        .container .actions{
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .info {
+            display: grid;
+            grid-template-columns: auto auto auto;
+
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            background-color: #3148c2;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background-color: #4595a0;
+        }
+
+        .salary-info {
+            display: grid;
+            grid-template-columns: auto auto;
+            justify-content: space-evenly;
+            row-gap: 20px;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            border-radius: 5px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .info label{
+            font-weight: bolder;
+        }
+        #empIdNext{
+            display: none;
+        }
+        #empIdLeave{
+            display: none;
+        }
+        .info .row{
+            display: flex;
+            flex-flow: row nowrap;
+            column-gap: 5px;
+            margin: 5px;
+        }
+        .tables{
+            display: flex;
+            flex-flow: row nowrap;
+            justify-content: space-evenly;
+            font-family: Cambria,ui-rounded;
+        }
+        .table-column{
+            display: flex;
+            flex-flow: column nowrap;
+            border: 1px solid black;
+            padding: 10px;
+        }
+        .table-column h4{
+            text-align: center;
+        }
+        .table-column tbody tr{
+            font-size: 12px;
+            text-align: center;
+        }
+        .table-column thead tr th{
+            padding-inline: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Employee Dashboard</h1>
+    <div class="info">
+        <div class="row">
+            <label for="name">Name:</label>
+            <div id="name"><th:block th:text="${employee.firstName}"></th:block> <th:block th:text="${employee.lastName}"></th:block></div>
+        </div>
+        <div class="row">
+            <label for="dob">Date of Birth:</label>
+            <div id="dob">
+                <th:block th:text="${employee.dob}"></th:block>
+            </div>
+        </div>
+        <div class="row">
+            <label for="email">Email:</label>
+            <div id="email" th:text="${employee.email}"></div>
+        </div>
+        <div class="row">
+            <label for="phone">Phone Number:</label>
+            <div id="phone" th:text="${employee.phoneNumber}"></div>
+        </div>
+        <div class="row">
+            <label for="gender">Gender:</label>
+            <div id="gender" th:text="${employee.gender}"></div>
+        </div>
+        <div class="row">
+            <label for="department">Department:</label>
+            <div id="department" th:text="${employee.department}"></div>
+        </div>
+
+    </div>
+    <div class="actions">
+        <button class="btn" onclick="openModal('leaveModal')">Apply for Leave</button>
+        <button class="btn" onclick="openModal('attendanceModal')">Mark Attendance</button>
+        <button class="btn" onclick="openModal('salaryModal')">View Salary</button>
+    </div>
+    <!-- Leave Modal -->
+    <div id="leaveModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('leaveModal')">&times;</span>
+            <h2>Apply for Leave</h2>
+            <form id="leaveForm" action="#" th:action="@{/employees/apply-leave}" method="post" th:object="${employeeLeave}">
+                <span id="empIdLeave" th:text="${employeeId}"></span>
+                <label for="leaveType">Leave Type:</label>
+                <select id="leaveType" name="leaveType" th:name="leaveType" th:field="*{leaveType}">
+                    <option value="Sick Leave">Sick Leave</option>
+                    <option value="Vacation Leave">Vacation Leave</option>
+                    <option value="Personal Leave">Personal Leave</option>
+                </select><br>
+                <label for="startDate">Start Date:</label>
+                <input type="date" id="startDate" name="startDate" th:field="*{startDate}"><br>
+                <label for="endDate">End Date:</label>
+                <input type="date" id="endDate" name="endDate" th:field="*{endDate}"><br>
+                <button type="button" onclick="applyLeave()" class="btn">Submit</button>
+            </form>
+        </div>
+    </div>
+    <!-- Attendance Modal -->
+    <div id="attendanceModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('attendanceModal')">&times;</span>
+            <h2>Mark Attendance</h2>
+            <!-- Attendance marking form can be placed here -->
+            <p>Mark your attendance:</p>
+            <form action="#" id="attendanceForm" th:action="@{/employees/sign-attendance}" th:object="${checkData}" method="post">
+                <div th:object="${employeeAttendance}" th:if="${employeeAttendance != null}">
+                    <div >
+                        <label>Sign In Time: </label>
+                        <div th:text="*{inTime}" th:if="${employeeAttendance.inTime != null}"></div>
+                    </div>
+                    <div>Sign Out Time: </div>
+                    <div th:text="*{outTime}" th:if="${employeeAttendance.outTime != null}"></div>
+                </div>
+                <input type="date" id="date" name="date">
+
+                <input type="hidden" id="empId" th:value="${employeeId}" th:name="*{empId}" name="employeeId">
+                <input type="hidden" id="action" value="" name="action" th:name="*{action}">
+                <button type="button" class="btn" onclick="clockIn()">Clock In</button>
+                <button type="button" class="btn" onclick="clockOut()">Clock Out</button>
+            </form>
+        </div>
+    </div>
+    <!-- Salary Modal -->
+    <div id="salaryModal" class="modal">
+        <div class="modal-content" id="salaryModalContent">
+            <span class="close" onclick="closeModal('salaryModal')">&times;</span>
+            <h2>View Salary</h2>
+            <!-- Salary information can be displayed here -->
+            <div class="salary-info">
+                <div class="info-item">
+                    <span>Your last salary amount:</span>
+                    <span>$XXXXX</span>
+                </div>
+                <div class="info-item">
+                    <span>Last salary date:</span>
+                    <span>XX/XX/XXXX</span>
+                </div>
+                <div class="info-item">
+                    <span>Your Next salary amount:</span>
+                    <span>$XXXXX</span>
+                </div>
+                <div class="info-item">
+                    <span>Next salary date:</span>
+                    <span>XX/XX/XXXX</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+<div class="tables">
+    <div class="table-column">
+        <h4>Attendance Marked</h4>
+        <table>
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Date</th>
+                <th>Time In</th>
+                <th>Time Out</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="attendance, sn: ${attendances}" th:if="${attendance != null}">
+                <td th:text="${sn.count}"></td>
+                <td th:text="${attendance.getDate()}"></td>
+                <td th:text="${attendance.getInTime()}"></td>
+                <td th:text="${attendance.getOutTime()}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="table-column">
+        <h4>Leaves Taken</h4>
+        <table>
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Type</th>
+                <th>Status</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="leave, sn: ${leaves}" th:if="${leave != null}">
+                <td th:text="${sn.count}"></td>
+                <td th:text="${leave.getStartDate()}"></td>
+                <td th:text="${leave.getEndDate()}"></td>
+                <td th:text="${leave.getLeaveType()}"></td>
+                <td th:text="${leave.getStatus()}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="table-column">
+        <h4>Salary Received</h4>
+        <table>
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Date</th>
+                <th>Amount</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="salary, countObj: ${salaryList}" th:if="${salary != null}">
+                <td th:text="${countObj.count}"></td>
+                <td th:text="${salary.createdAt}"></td>
+                <td>N<th:block th:text="${salary.createdAt}"></th:block> </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+<script>
+    function clockIn() {
+        let empId = $("#empId").val();
+        let date = $("#date").val();
+        if(date === "" || date === null){
+            alert("Sign out date must be provided");
+        }else if(empId === "" || empId === null){
+            alert("Seems you're not login. pls login first");
+        }else{
+            $.ajax({
+                url: "/employees/sign-attendance",
+                method: "post",
+                data: {
+                    empId: empId,
+                    action: "CLOCK_IN",
+                    date: date
+                },
+                success: function (res) {
+
+                },
+                error: function (err) {
+                    alert(JSON.stringify(err));
+                }
+            });
+        }
+
+    }
+
+    function clockOut() {
+        let empId = $("#empId").val();
+        let date = $("#date").val();
+        if(date === "" || date === null){
+            alert("Sign out date must be provided");
+        }else if(empId === "" || empId === null){
+            alert("Seems you're not login. pls login first");
+        }else{
+            $.ajax({
+                url: "/employees/sign-attendance",
+                method: "post",
+                data: {
+                    empId: empId,
+                    action: "CLOCK_OUT",
+                    date: date
+                },
+                success: function (res) {
+
+                },
+                error: function (err) {
+                    alert(JSON.stringify(err));
+                }
+            });
+        }
+
+
+    }
+
+    function openModal(modalId) {
+        var modal = document.getElementById(modalId);
+        modal.style.display = "block";
+    }
+
+    // Function to close modal
+    function closeModal(modalId) {
+        var modal = document.getElementById(modalId);
+        modal.style.display = "none";
+    }
+
+    // Close modal when clicking outside of it
+    window.onclick = function (event) {
+        var modals = document.getElementsByClassName('modal');
+        for (var i = 0; i < modals.length; i++) {
+            if (event.target == modals[i]) {
+                modals[i].style.display = "none";
+            }
+        }
+    }
+
+    function applyLeave(){
+        let startDate = $("#startDate").val();
+        let endDate = $("#endDate").val();
+        let empId = $("#empIdLeave").text();
+        let leaveType = "";
+        $("#leaveType").change(function (){
+            leaveType = $(this).val();
+            console.log("Selected value: " + leaveType);
+            alert(leaveType);
+        });
+        $.ajax({
+            url: "/employees/apply-leave",
+            method: "post",
+            data: {
+                empId: empId,
+                startDate: startDate,
+                endDate: endDate,
+                leaveType: leaveType
+            },
+            success: function (res) {
+
+            },
+            error: function (err) {
+                alert(JSON.stringify(err));
+            }
+        });
+    }
+</script>
+</body>
+</html>
